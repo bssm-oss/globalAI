@@ -28,9 +28,19 @@ The tool does not scan the entire filesystem. It only checks a curated set of kn
 - it keeps viewer behavior predictable
 - it makes documentation and tests much easier to keep accurate
 
+The current supported matrix is intentionally narrow:
+
+- project root files: `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`
+- project config locations: `.github/copilot-instructions.md`, `.claude/**`, `.cursor/rules/**`, `.sisyphus/**`
+- global locations: `~/AGENTS.md`, `~/.claude/**`, `~/.cursor/rules/**`, `~/.sisyphus/**`
+
+Files outside those locations are not part of the current product contract.
+
 ### Embedded assets
 
 The viewer is shipped via `go:embed`, which means contributors do not need a separate frontend toolchain to work on the project. Static assets live under `internal/viewer/static/` and are served directly by the binary.
+
+The viewer is loopback-only and the browser UI renders both prompt bodies and filesystem-derived metadata through text-safe DOM updates instead of trusting those values as HTML.
 
 ## Current package map
 
