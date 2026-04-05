@@ -1,10 +1,10 @@
-# Contributing
+# 기여 가이드
 
-Thanks for contributing to `globalAI`.
+`globalAI`에 기여해 주셔서 감사합니다.
 
-## Local checklist
+## 로컬 체크리스트
 
-Before opening a pull request, run:
+풀 리퀘스트를 열기 전에 다음 명령을 실행하십시오.
 
 ```bash
 go test ./...
@@ -12,15 +12,15 @@ go build ./cmd/globalai
 bash scripts/functional_smoke.sh
 ```
 
-## Contribution guidelines
+## 기여 가이드라인
 
-- Keep features small and explain the user-facing motivation in your PR.
-- Add or update tests for every behavior change.
-- Update `README.md` and relevant files in `docs/` when behavior or architecture changes.
-- Prefer targeted changes over broad refactors.
+- 기능은 가능한 한 작게 유지하고, PR에는 사용자 관점의 동기를 설명하십시오.
+- 동작이 바뀌면 테스트를 추가하거나 업데이트하십시오.
+- 동작이나 아키텍처가 바뀌면 `README.md`와 관련 `docs/` 문서를 함께 갱신하십시오.
+- 넓은 범위의 리팩터링보다 목적이 분명한 국소 변경을 선호하십시오.
 
-## Development notes
+## 개발 노트
 
-- The project intentionally uses the standard library for the CLI and embedded viewer.
-- The discovery layer is allowlist-based by design.
-- The viewer is local-only and should remain safe to run on a personal workstation.
+- 이 프로젝트는 CLI와 임베디드 뷰어에 대해 의도적으로 표준 라이브러리를 사용합니다.
+- 탐색 계층은 설계상 allowlist 기반입니다.
+- 뷰어는 로컬 전용이며, 개인 워크스테이션에서 안전하게 실행될 수 있어야 합니다.

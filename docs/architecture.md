@@ -1,58 +1,58 @@
-# Architecture
+# 아키텍처
 
-## Overview
+## 개요
 
-`globalAI` is a greenfield Go CLI built around one core workflow: discover AI prompt and instruction files, then show them in a local embedded web viewer.
+`globalAI`는 AI 프롬프트와 지침 파일을 탐색한 뒤, 이를 로컬 임베디드 웹 뷰어로 보여주는 하나의 핵심 워크플로를 중심으로 설계된 Go CLI입니다.
 
-The architecture is intentionally small.
+아키텍처는 의도적으로 작고 단순합니다.
 
-## Runtime flow
+## 런타임 흐름
 
-1. `cmd/globalai/main.go` creates a signal-aware context.
-2. `internal/cli` parses command-line arguments and resolves root and home directories.
-3. `internal/source` collects allowlisted files from project and global locations.
-4. `internal/viewer` starts a loopback HTTP server and exposes both the embedded UI and `/api/sources`.
-5. `internal/browser` optionally opens the local viewer URL with the platform default browser.
+1. `cmd/globalai/main.go` 가 시그널을 처리하는 컨텍스트를 생성합니다.
+2. `internal/cli` 가 명령행 인자를 파싱하고 루트 디렉터리와 홈 디렉터리를 결정합니다.
+3. `internal/source` 가 프로젝트와 전역 위치에서 allowlist 기반 파일을 수집합니다.
+4. `internal/viewer` 가 루프백 HTTP 서버를 시작하고 임베디드 UI와 `/api/sources` 를 노출합니다.
+5. `internal/browser` 가 필요할 경우 기본 브라우저로 로컬 뷰어 URL을 엽니다.
 
-## Why the project is structured this way
+## 왜 이런 구조를 택했는가
 
-### Standard library first
+### 표준 라이브러리 우선
 
-The current product scope does not justify Cobra, Viper, a JS build chain, or a template/rendering dependency. Using stdlib-only plumbing keeps the codebase transparent and lowers maintenance cost for an OSS project that is just getting started.
+현재 제품 범위는 Cobra, Viper, JavaScript 빌드 체인, 별도 템플릿 렌더링 의존성을 정당화할 정도로 크지 않습니다. 표준 라이브러리만 사용하는 구조는 코드베이스를 투명하게 만들고, 이제 막 시작한 오픈소스 프로젝트의 유지 비용을 낮춥니다.
 
-### Discovery is deterministic
+### 결정적인 탐색
 
-The tool does not scan the entire filesystem. It only checks a curated set of known prompt and rule locations. That choice is product-driven:
+이 도구는 전체 파일 시스템을 스캔하지 않습니다. 대신 잘 알려진 프롬프트와 규칙 위치만 엄선해 확인합니다. 이런 선택은 제품 관점에서 중요합니다.
 
-- it reduces accidental exposure of unrelated files
-- it keeps viewer behavior predictable
-- it makes documentation and tests much easier to keep accurate
+- 관련 없는 파일이 실수로 노출될 가능성을 줄입니다.
+- 뷰어 동작을 예측 가능하게 유지합니다.
+- 문서와 테스트를 정확하게 유지하기 쉬워집니다.
 
-The current supported matrix is intentionally narrow:
+현재 지원 매트릭스는 의도적으로 좁게 유지됩니다.
 
-- project root files: `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`
-- project config locations: `.github/copilot-instructions.md`, `.claude/**`, `.cursor/rules/**`, `.sisyphus/**`
-- global locations: `~/AGENTS.md`, `~/.claude/**`, `~/.cursor/rules/**`, `~/.sisyphus/**`
+- 프로젝트 루트 파일: `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`
+- 프로젝트 설정 위치: `.github/copilot-instructions.md`, `.claude/**`, `.cursor/rules/**`, `.sisyphus/**`
+- 전역 위치: `~/AGENTS.md`, `~/.claude/**`, `~/.cursor/rules/**`, `~/.sisyphus/**`
 
-Files outside those locations are not part of the current product contract.
+이 위치 밖의 파일은 현재 제품 계약에 포함되지 않습니다.
 
-### Embedded assets
+### 임베디드 자산
 
-The viewer is shipped via `go:embed`, which means contributors do not need a separate frontend toolchain to work on the project. Static assets live under `internal/viewer/static/` and are served directly by the binary.
+뷰어는 `go:embed` 를 통해 배포됩니다. 덕분에 기여자는 별도의 프런트엔드 빌드 도구 없이도 프로젝트를 작업할 수 있습니다. 정적 자산은 `internal/viewer/static/` 아래에 있으며 바이너리에서 직접 서빙됩니다.
 
-The viewer is loopback-only and the browser UI renders both prompt bodies and filesystem-derived metadata through text-safe DOM updates instead of trusting those values as HTML.
+뷰어는 루프백 전용이며, 브라우저 UI는 프롬프트 본문과 파일 시스템에서 유래한 메타데이터 모두를 HTML로 신뢰하지 않고 텍스트 안전 방식으로 렌더링합니다.
 
-## Current package map
+## 현재 패키지 구조
 
-- `internal/cli`: command entrypoints and orchestration
-- `internal/source`: discovery rules and payload generation
-- `internal/viewer`: HTTP serving and session lifecycle
-- `internal/browser`: OS-specific browser opening
+- `internal/cli`: 명령 진입점과 오케스트레이션
+- `internal/source`: 탐색 규칙과 페이로드 생성
+- `internal/viewer`: HTTP 서빙과 세션 수명주기
+- `internal/browser`: OS별 브라우저 실행
 
-## Near-term extension points
+## 가까운 확장 지점
 
-- richer discovery families for more AI tools
-- filtering and search in the embedded UI
-- release automation for tagged builds
+- 더 많은 AI 도구 소스 계열 지원
+- 임베디드 UI 내부 검색과 필터링
+- 태그 기반 릴리스 자동화
 
-Any larger feature should preserve the current safety guarantees unless the product explicitly decides otherwise.
+더 큰 기능을 추가하더라도, 제품 요구 사항이 명시적으로 바뀌지 않는 한 현재의 안전 보장을 유지해야 합니다.
