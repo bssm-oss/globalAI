@@ -1,54 +1,54 @@
 # AGENTS.md
 
-This file is for future human and AI contributors working on `globalAI`.
+이 파일은 `globalAI`에서 작업할 미래의 사람 기여자와 AI 기여자를 위한 안내서입니다.
 
-## Project purpose
+## 프로젝트 목적
 
-`globalAI` is a local-first Go CLI that visualizes AI prompt and instruction files that are otherwise scattered across project and user-level configuration locations. The current product surface is intentionally narrow: one binary, one main workflow, and a deterministic discovery model.
+`globalAI`는 프로젝트 수준과 사용자 전역 설정 위치에 흩어져 있는 AI 프롬프트 및 지침 파일을 시각화하는 로컬 우선 Go CLI입니다. 현재 제품 범위는 의도적으로 좁습니다. 하나의 바이너리, 하나의 핵심 워크플로, 그리고 결정적인 탐색 모델만을 유지합니다.
 
-## Core product rules
+## 핵심 제품 규칙
 
-1. Keep the tool local-first. Do not add network-dependent product behavior for the viewer.
-2. Prefer deterministic allowlists over broad filesystem crawling.
-3. Avoid leaking unrelated secrets by scanning arbitrary directories.
-4. Keep the runtime dependency footprint extremely small.
-5. Preserve the safety property that prompt contents are rendered as plain text, not trusted HTML.
+1. 도구는 반드시 로컬 우선이어야 합니다. 뷰어에 네트워크 의존 제품 동작을 추가하지 마십시오.
+2. 광범위한 파일 시스템 순회보다 결정적인 allowlist를 우선하십시오.
+3. 임의 디렉터리를 스캔해 관련 없는 비밀이 노출되지 않도록 하십시오.
+4. 런타임 의존성은 가능한 한 작게 유지하십시오.
+5. 프롬프트 내용은 신뢰된 HTML이 아니라 일반 텍스트로 렌더링되어야 합니다.
 
-## Architecture boundaries
+## 아키텍처 경계
 
-- `cmd/globalai/` should stay thin and only wire process-level concerns.
-- `internal/cli/` owns argument parsing and command orchestration.
-- `internal/source/` owns discovery policy and source metadata generation.
-- `internal/viewer/` owns HTTP serving and embedded asset delivery.
-- `internal/browser/` owns best-effort browser opening.
+- `cmd/globalai/` 는 프로세스 수준 연결만 담당하는 얇은 계층으로 유지합니다.
+- `internal/cli/` 는 인자 파싱과 명령 오케스트레이션을 담당합니다.
+- `internal/source/` 는 탐색 정책과 소스 메타데이터 생성을 담당합니다.
+- `internal/viewer/` 는 HTTP 서빙과 임베디드 자산 전달을 담당합니다.
+- `internal/browser/` 는 브라우저 실행의 best-effort 동작을 담당합니다.
 
-If a new feature does not fit one of those boundaries cleanly, discuss the boundary before adding code.
+새 기능이 이 경계 안에 자연스럽게 들어가지 않는다면, 먼저 경계를 논의한 뒤 코드를 추가하십시오.
 
-## Design constraints
+## 설계 제약
 
-- Prefer the Go standard library unless a new dependency materially reduces complexity.
-- Do not add a JavaScript build pipeline unless the UI scope changes enough to justify it.
-- Do not replace the allowlist with generic recursive scanning.
-- Keep the server bound to loopback unless the product requirement explicitly changes.
+- 새로운 의존성이 복잡도를 실질적으로 줄이지 않는 한 Go 표준 라이브러리를 우선합니다.
+- UI 범위가 충분히 커지기 전까지 JavaScript 빌드 파이프라인을 추가하지 마십시오.
+- allowlist를 일반적인 재귀 스캔으로 바꾸지 마십시오.
+- 제품 요구 사항이 바뀌지 않는 한 서버는 루프백에만 바인딩되어야 합니다.
 
-## Testing expectations
+## 테스트 기대사항
 
-Every change should keep three layers healthy:
+모든 변경은 다음 세 계층을 건강하게 유지해야 합니다.
 
-1. unit tests for the changed package
-2. full `go test ./...`
-3. the functional smoke test script under `scripts/`
+1. 변경된 패키지의 단위 테스트
+2. 전체 `go test ./...`
+3. `scripts/` 아래 기능 스모크 테스트 스크립트
 
-If you change the viewer contract, update both the Go tests and the smoke test.
+뷰어 계약을 변경했다면 Go 테스트와 스모크 테스트를 모두 업데이트해야 합니다.
 
-## Documentation expectations
+## 문서 기대사항
 
-- Update `README.md` when user-facing behavior changes.
-- Add a change record under `docs/changes/` for meaningful project changes.
-- Update `docs/architecture.md` when package responsibilities or discovery rules change.
+- 사용자에게 보이는 동작이 바뀌면 `README.md`를 업데이트하십시오.
+- 의미 있는 변경이 있으면 `docs/changes/` 아래에 변경 기록을 추가하십시오.
+- 패키지 책임이나 탐색 규칙이 바뀌면 `docs/architecture.md`를 업데이트하십시오.
 
-## Git and release expectations
+## Git 및 릴리스 기대사항
 
-- Prefer small, reviewable commits grouped by concern.
-- Keep test changes close to the implementation they validate.
-- Do not ship changes with failing tests, failing builds, or broken smoke tests.
+- 작은 단위의 리뷰 가능한 커밋을 선호하고, 관심사별로 묶으십시오.
+- 테스트 변경은 그것이 검증하는 구현과 가까이 두십시오.
+- 실패하는 테스트, 실패하는 빌드, 깨진 스모크 테스트 상태로는 절대 배포하지 마십시오.
