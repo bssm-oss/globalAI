@@ -1,0 +1,6 @@
+.DS_Store
+.idea/
+.sisyphus/
+dist/
+globalai
+coverage.out
