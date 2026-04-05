@@ -2,5 +2,5 @@
 .idea/
 .sisyphus/
 dist/
-globalai
+/globalai
 coverage.out
