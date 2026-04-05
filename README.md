@@ -19,6 +19,8 @@ Many AI tools store important instructions in different places: repository files
 
 The current allowlist favors clarity and safety over broad scanning.
 
+`globalAI` does not claim to scrape every AI CLI on disk. The current release supports the exact source families below and nothing broader.
+
 ### Project-local sources
 
 - `AGENTS.md`
@@ -37,6 +39,24 @@ The current allowlist favors clarity and safety over broad scanning.
 - `~/.sisyphus/**`
 
 Supported file extensions are currently `.md`, `.mdc`, `.txt`, `.json`, `.yaml`, and `.yml`. Files larger than 1 MiB are skipped.
+
+### Supported source matrix
+
+| Family | Location | Included in tests |
+| --- | --- | --- |
+| Project agent file | `AGENTS.md` | Yes |
+| Project Claude file | `CLAUDE.md` | Yes |
+| Project Gemini file | `GEMINI.md` | Yes |
+| Project Copilot instructions | `.github/copilot-instructions.md` | Yes |
+| Project Claude rules | `.claude/**` | Yes |
+| Project Cursor rules | `.cursor/rules/**` | Yes |
+| Project Sisyphus files | `.sisyphus/**` | Yes |
+| Global agent file | `~/AGENTS.md` | Yes |
+| Global Claude rules | `~/.claude/**` | Yes |
+| Global Cursor rules | `~/.cursor/rules/**` | Yes |
+| Global Sisyphus files | `~/.sisyphus/**` | Yes |
+
+Anything outside that matrix is currently out of scope and should be added deliberately instead of assumed.
 
 ## Getting started
 
@@ -87,6 +107,8 @@ bash scripts/functional_smoke.sh
 
 That script builds the binary, starts `globalai web --no-open`, probes the local API, and verifies the returned JSON.
 
+The repository also includes unit coverage that exercises every currently supported source family, zero-source responses, symlink rejection, and large-file rejection.
+
 ## CI
 
 The repository ships with a GitHub Actions workflow that runs:
@@ -96,6 +118,11 @@ The repository ships with a GitHub Actions workflow that runs:
 - `go test -race ./...`
 - `go build ./cmd/globalai`
 - the functional smoke test script
+
+Recent GitHub Actions evidence:
+
+- PR run: `ci` succeeded for PR #1
+- Main branch run: `ci` succeeded after merge to `main`
 
 ## Project structure
 

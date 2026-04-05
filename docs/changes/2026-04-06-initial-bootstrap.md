@@ -14,6 +14,24 @@ This change bootstraps the `globalAI` repository from an empty state into a work
 - repository docs including `README.md`, `AGENTS.md`, `CONTRIBUTING.md`, and `docs/architecture.md`
 - GitHub Actions CI for formatting, vetting, tests, build, and smoke verification
 
+## Post-review hardening completed before merge
+
+- loopback-only binding is enforced for the local web server
+- viewer metadata is rendered through text-safe DOM updates rather than `innerHTML`
+- discovery rejects symlink escapes and oversized files
+- `globalai web --help` has explicit subcommand help output
+- zero-source API responses now return empty arrays instead of `null`
+
+## Verification evidence
+
+- `go test ./...`
+- `go test -race ./...`
+- `go vet ./...`
+- `go build ./cmd/globalai`
+- `bash scripts/functional_smoke.sh`
+- manual browser/API QA of `globalai web`
+- successful GitHub Actions runs for PR #1 and the merged `main` branch build
+
 ## Product decisions
 
 - standard library first
