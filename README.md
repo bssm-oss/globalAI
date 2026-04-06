@@ -70,6 +70,13 @@ go install github.com/bssm-oss/globalAI/cmd/globalai@latest
 
 설치 후에는 `$(go env GOPATH)/bin` 또는 사용 중인 `GOBIN` 이 `PATH` 에 있어야 `globalai` 명령을 바로 실행할 수 있습니다.
 
+설치가 끝났다면 아래 명령으로 먼저 동작을 확인할 수 있습니다.
+
+```bash
+globalai --help
+globalai web --help
+```
+
 ### GitHub Releases에서 바이너리 다운로드
 
 Go를 따로 설치하지 않고 쓰고 싶다면 GitHub Releases에서 운영체제에 맞는 압축 파일을 내려받아 압축을 풀고 `globalai` 바이너리를 실행하면 됩니다.
@@ -100,6 +107,12 @@ go build ./cmd/globalai
 ./globalai web
 ```
 
+설치된 바이너리를 사용 중이라면 아래처럼 실행하면 됩니다.
+
+```bash
+globalai web
+```
+
 특정 저장소 루트를 명시적으로 지정해서 실행할 수도 있습니다.
 
 ```bash
@@ -107,11 +120,45 @@ go build ./cmd/globalai
 ./globalai web /path/to/repository
 ```
 
+### 첫 실행에서 보게 되는 것
+
+- `globalai web` 은 루프백 주소(`127.0.0.1`)에만 로컬 서버를 엽니다.
+- 기본 주소가 `127.0.0.1:0` 이므로 실행할 때마다 사용 가능한 임시 포트를 자동으로 고릅니다.
+- 기본 동작은 브라우저를 자동으로 여는 것이며, `--no-open` 을 주면 브라우저를 열지 않습니다.
+- 뷰어가 준비되면 `globalai viewer ready at http://127.0.0.1:PORT` 형식의 로컬 URL 이 출력됩니다.
+- 왼쪽에는 발견된 소스 목록이, 오른쪽에는 선택한 파일의 본문이 표시됩니다.
+
+### 뷰어에서 확인할 수 있는 것
+
+- 현재 저장소 루트에서 발견된 프로젝트 로컬 소스
+- 현재 사용자 홈 디렉터리에서 발견된 전역 소스
+- 선택한 파일의 계열, 상대 경로, 크기, 원문 텍스트
+
+즉, 하나의 저장소를 열어도 프로젝트 파일만이 아니라 `~/AGENTS.md`, `~/.claude/**`, `~/.cursor/rules/**`, `~/.sisyphus/**` 같은 전역 위치도 함께 보일 수 있습니다.
+
+### 아무 파일도 보이지 않을 때
+
+allowlist 에 포함된 파일이 하나도 없으면 뷰어는 빈 목록 상태로 열립니다. 이 경우 아래 위치에 파일이 있는지 먼저 확인하면 됩니다.
+
+- 프로젝트 루트: `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`
+- 프로젝트 설정 위치: `.github/copilot-instructions.md`, `.claude/**`, `.cursor/rules/**`, `.sisyphus/**`
+- 전역 위치: `~/AGENTS.md`, `~/.claude/**`, `~/.cursor/rules/**`, `~/.sisyphus/**`
+
 ### 유용한 플래그
 
 - `--addr`: 리슨 주소를 덮어씁니다. 기본값은 `127.0.0.1:0` 입니다.
 - `--open`: 시작 후 브라우저를 강제로 엽니다.
 - `--no-open`: 브라우저를 열지 않습니다. CI나 스모크 테스트에 유용합니다.
+
+### 로컬 API
+
+뷰어는 정적 UI와 함께 로컬 전용 JSON 엔드포인트도 함께 노출합니다.
+
+```text
+GET /api/sources
+```
+
+이 엔드포인트는 현재 수집된 소스 목록과 메타데이터를 반환하므로, 스크립트나 디버깅 용도로 사용할 수 있습니다.
 
 ## 개발 워크플로
 
