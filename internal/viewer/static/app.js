@@ -3,9 +3,39 @@ async function bootstrap() {
   const sourceList = document.querySelector('#source-list');
   const sourceTitle = document.querySelector('#source-title');
   const sourceMeta = document.querySelector('#source-meta');
+  const contentPanel = document.querySelector('#content-panel');
+  const contentState = document.querySelector('#content-state');
   const sourceContent = document.querySelector('#source-content');
 
+  function renderMeta(parts) {
+    const items = parts.filter(Boolean).map((value) => {
+      const item = document.createElement('span');
+      item.textContent = value;
+      return item;
+    });
+    sourceMeta.replaceChildren(...items);
+  }
+
+  function renderPanel(state, message, content = '') {
+    contentPanel.dataset.state = state;
+
+    if (state === 'ready') {
+      contentState.hidden = true;
+      sourceContent.hidden = false;
+      sourceContent.textContent = content;
+      return;
+    }
+
+    sourceContent.hidden = true;
+    sourceContent.textContent = '';
+    contentState.hidden = false;
+    contentState.textContent = message;
+  }
+
   const response = await fetch('/api/sources');
+  if (!response.ok) {
+    throw new Error(`Request failed (${response.status})`);
+  }
   const payload = await response.json();
   const sources = payload.sources || [];
   const generatedAt = payload.generatedAt ? new Date(payload.generatedAt).toLocaleString() : 'unknown';
@@ -20,15 +50,15 @@ async function bootstrap() {
 
   if (sources.length === 0) {
     sourceTitle.textContent = 'No sources found';
-    sourceMeta.textContent = 'Add an allowlisted file such as AGENTS.md, CLAUDE.md, .claude/, .cursor/rules/, or .sisyphus/.';
-    sourceContent.textContent = '';
+    renderMeta(['allowlist is empty']);
+    renderPanel('empty', 'Add an allowlisted file such as AGENTS.md, CLAUDE.md, .claude/, .cursor/rules/, or .sisyphus/.');
     return;
   }
 
   function render(selectedSource) {
     sourceTitle.textContent = selectedSource.label;
-    sourceMeta.textContent = `${selectedSource.family} · ${selectedSource.relativePath} · ${selectedSource.sizeBytes} bytes`;
-    sourceContent.textContent = selectedSource.content;
+    renderMeta([selectedSource.family, selectedSource.relativePath, `${selectedSource.sizeBytes} bytes`]);
+    renderPanel('ready', '', selectedSource.content);
   }
 
   sources.forEach((item, index) => {
@@ -60,6 +90,14 @@ async function bootstrap() {
 bootstrap().catch((error) => {
   const sourceTitle = document.querySelector('#source-title');
   const sourceMeta = document.querySelector('#source-meta');
+  const contentPanel = document.querySelector('#content-panel');
+  const contentState = document.querySelector('#content-state');
+  const sourceContent = document.querySelector('#source-content');
   sourceTitle.textContent = 'Load failed';
-  sourceMeta.textContent = error.message;
+  sourceMeta.replaceChildren();
+  contentPanel.dataset.state = 'error';
+  sourceContent.hidden = true;
+  sourceContent.textContent = '';
+  contentState.hidden = false;
+  contentState.textContent = error.message;
 });
