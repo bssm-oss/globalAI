@@ -52,7 +52,7 @@ func TestStartServesSourcesAPI(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ReadAll() error = %v", err)
 	}
-	if !strings.Contains(string(body), "Prompt Viewer") {
+	if !strings.Contains(string(body), "brand-title\">viewer") {
 		t.Fatalf("expected embedded viewer shell, got %q", string(body))
 	}
 

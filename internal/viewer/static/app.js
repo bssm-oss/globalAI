@@ -8,20 +8,19 @@ async function bootstrap() {
   const response = await fetch('/api/sources');
   const payload = await response.json();
   const sources = payload.sources || [];
+  const generatedAt = payload.generatedAt ? new Date(payload.generatedAt).toLocaleString() : 'unknown';
 
   const total = document.createElement('strong');
   total.textContent = `${payload.totalSources || sources.length} sources`;
   const root = document.createElement('p');
-  root.className = 'muted';
-  root.textContent = `Root: ${payload.root || 'unknown'}`;
+  root.textContent = `root · ${payload.root || 'unknown'}`;
   const generated = document.createElement('p');
-  generated.className = 'muted';
-  generated.textContent = `Generated: ${new Date(payload.generatedAt).toLocaleString()}`;
+  generated.textContent = `updated · ${generatedAt}`;
   summary.replaceChildren(total, root, generated);
 
   if (sources.length === 0) {
-    sourceTitle.textContent = 'No allowlisted sources found';
-    sourceMeta.textContent = 'Add AGENTS.md, CLAUDE.md, .claude/, .cursor/rules/, or .sisyphus/ files to see them here.';
+    sourceTitle.textContent = 'No sources found';
+    sourceMeta.textContent = 'Add an allowlisted file such as AGENTS.md, CLAUDE.md, .claude/, .cursor/rules/, or .sisyphus/.';
     sourceContent.textContent = '';
     return;
   }
@@ -61,6 +60,6 @@ async function bootstrap() {
 bootstrap().catch((error) => {
   const sourceTitle = document.querySelector('#source-title');
   const sourceMeta = document.querySelector('#source-meta');
-  sourceTitle.textContent = 'Viewer failed to load';
+  sourceTitle.textContent = 'Load failed';
   sourceMeta.textContent = error.message;
 });

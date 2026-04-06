@@ -3,31 +3,29 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>globalai viewer</title>
+    <title>globalai</title>
     <link rel="stylesheet" href="/app.css" />
   </head>
   <body>
     <div class="app-shell">
       <aside class="sidebar">
-        <div class="brand">
-          <p class="eyebrow">globalai</p>
-          <h1>Prompt Viewer</h1>
-          <p class="muted">Curated AI instruction sources from project and global locations.</p>
+        <div class="sidebar-header">
+          <div class="brand">
+            <p class="brand-mark">globalai</p>
+            <h1 class="brand-title">viewer</h1>
+          </div>
+          <div id="summary" class="summary"></div>
         </div>
-        <div id="summary" class="summary-card"></div>
-        <nav>
+        <nav class="source-nav" aria-label="Sources">
           <ul id="source-list" class="source-list"></ul>
         </nav>
       </aside>
       <main class="content">
         <header class="content-header">
-          <div>
-            <p class="eyebrow">Selected source</p>
-            <h2 id="source-title">Loading…</h2>
-            <p id="source-meta" class="muted"></p>
-          </div>
+          <h2 id="source-title">Loading…</h2>
+          <p id="source-meta" class="meta-line"></p>
         </header>
-        <section class="content-panel">
+        <section class="content-panel" aria-live="polite">
           <pre id="source-content" class="source-content"></pre>
         </section>
       </main>
