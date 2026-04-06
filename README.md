@@ -58,13 +58,37 @@
 
 이 매트릭스 밖의 경로는 현재 범위에 포함되지 않으며, 필요하다면 추정으로 추가하지 말고 명시적으로 확장해야 합니다.
 
+## 설치
+
+### Go로 바로 설치
+
+Go가 이미 설치되어 있다면 아래 명령으로 바로 설치할 수 있습니다.
+
+```bash
+go install github.com/bssm-oss/globalAI/cmd/globalai@latest
+```
+
+설치 후에는 `$(go env GOPATH)/bin` 또는 사용 중인 `GOBIN` 이 `PATH` 에 있어야 `globalai` 명령을 바로 실행할 수 있습니다.
+
+### GitHub Releases에서 바이너리 다운로드
+
+Go를 따로 설치하지 않고 쓰고 싶다면 GitHub Releases에서 운영체제에 맞는 압축 파일을 내려받아 압축을 풀고 `globalai` 바이너리를 실행하면 됩니다.
+
+이 바이너리 자산은 유지보수자가 `v*` 형식의 버전 태그를 푸시할 때 GitHub Releases에 자동으로 게시됩니다.
+
+- macOS: `globalai_darwin_amd64.tar.gz`, `globalai_darwin_arm64.tar.gz`
+- Linux: `globalai_linux_amd64.tar.gz`, `globalai_linux_arm64.tar.gz`
+- Windows: `globalai_windows_amd64.zip`, `globalai_windows_arm64.zip`
+
+릴리스 페이지: `https://github.com/bssm-oss/globalAI/releases`
+
 ## 시작하기
 
 ### 요구 사항
 
-- Go 1.25+
+- Go 1.25+ (`go install` 이나 로컬 빌드 사용 시)
 
-### 빌드
+### 로컬 빌드
 
 ```bash
 go build ./cmd/globalai
@@ -119,6 +143,8 @@ bash scripts/functional_smoke.sh
 - `go build ./cmd/globalai`
 - 기능 스모크 테스트 스크립트
 
+또한 버전 태그(`v*`)를 푸시하면 macOS, Linux, Windows용 압축 바이너리를 GitHub Release 자산으로 자동 게시합니다.
+
 최근 GitHub Actions 검증 결과:
 
 - PR 실행: PR #1에서 `ci` 성공
@@ -146,5 +172,4 @@ scripts/                반복 가능한 검증 도구
 
 - 더 많은 AI 도구 소스 계열 지원
 - 뷰어 내부 검색과 필터링
-- macOS, Linux, Windows용 패키지 릴리스
 - 프롬프트 상태를 감사하기 위한 더 나은 내보내기 또는 스냅샷 워크플로
