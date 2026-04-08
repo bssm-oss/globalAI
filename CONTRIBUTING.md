@@ -10,6 +10,7 @@
 go test ./...
 go build ./cmd/globalai
 bash scripts/functional_smoke.sh
+bash scripts/install_smoke.sh
 ```
 
 ## 기여 가이드라인

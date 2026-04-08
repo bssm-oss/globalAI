@@ -34,5 +34,11 @@ jobs:
       - name: Build CLI
         run: go build ./cmd/globalai
 
+      - name: Build installer flow
+        run: go build ./cmd/globalai
+
       - name: Run functional smoke test
         run: bash scripts/functional_smoke.sh
+
+      - name: Run install smoke test
+        run: bash scripts/install_smoke.sh
