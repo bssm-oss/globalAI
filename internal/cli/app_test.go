@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	installer "github.com/bssm-oss/globalAI/internal/install"
 	"github.com/bssm-oss/globalAI/internal/source"
 	"github.com/bssm-oss/globalAI/internal/viewer"
 )
@@ -99,5 +100,40 @@ func TestRunWebHelp(t *testing.T) {
 	}
 	if got := stdout.String(); !strings.Contains(got, "globalai web starts a local viewer") {
 		t.Fatalf("expected web help text, got %q", got)
+	}
+}
+
+func TestRunInstall(t *testing.T) {
+	app := New(RuntimeEnvironment{
+		GetHomeDirectory:  func() (string, error) { return "/home/tester", nil },
+		GetExecutablePath: func() (string, error) { return "/tmp/globalai", nil },
+		LookupEnv: func(key string) (string, bool) {
+			switch key {
+			case "PATH":
+				return "/home/tester/bin:/usr/bin", true
+			case "SHELL":
+				return "/bin/zsh", true
+			default:
+				return "", false
+			}
+		},
+		InstallSelf: func(cfg installer.Config) (installer.Result, error) {
+			if cfg.ExecutablePath != "/tmp/globalai" {
+				t.Fatalf("unexpected executable path %q", cfg.ExecutablePath)
+			}
+			return installer.Result{
+				BinaryPath: "/home/tester/bin/globalai",
+				Directory:  "/home/tester/bin",
+				OnPath:     true,
+			}, nil
+		},
+	})
+
+	var stdout, stderr bytes.Buffer
+	if err := app.Run(context.Background(), []string{"install"}, &stdout, &stderr); err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+	if got := stdout.String(); !strings.Contains(got, "globalai is ready on PATH") {
+		t.Fatalf("expected install success output, got %q", got)
 	}
 }

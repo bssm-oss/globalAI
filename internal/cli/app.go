@@ -6,10 +6,12 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 	"strconv"
 
 	"github.com/bssm-oss/globalAI/internal/browser"
+	installer "github.com/bssm-oss/globalAI/internal/install"
 	"github.com/bssm-oss/globalAI/internal/source"
 	"github.com/bssm-oss/globalAI/internal/viewer"
 )
@@ -17,6 +19,9 @@ import (
 type RuntimeEnvironment struct {
 	GetWorkingDirectory func() (string, error)
 	GetHomeDirectory    func() (string, error)
+	GetExecutablePath   func() (string, error)
+	LookupEnv           func(string) (string, bool)
+	InstallSelf         func(installer.Config) (installer.Result, error)
 	OpenURL             func(string) error
 	DiscoverNow         func(source.Config) (*source.Result, error)
 	ServeViewer         func(context.Context, viewer.Config) (*viewer.Session, error)
@@ -32,6 +37,15 @@ func New(env RuntimeEnvironment) *App {
 	}
 	if env.GetHomeDirectory == nil {
 		env.GetHomeDirectory = source.DefaultHomeDirectory
+	}
+	if env.GetExecutablePath == nil {
+		env.GetExecutablePath = os.Executable
+	}
+	if env.LookupEnv == nil {
+		env.LookupEnv = os.LookupEnv
+	}
+	if env.InstallSelf == nil {
+		env.InstallSelf = installer.Install
 	}
 	if env.OpenURL == nil {
 		env.OpenURL = browser.Open
@@ -56,11 +70,75 @@ func (a *App) Run(ctx context.Context, args []string, stdout, stderr io.Writer) 
 	case "help", "-h", "--help":
 		a.printUsage(stdout)
 		return nil
+	case "install":
+		return a.runInstall(args[1:], stdout)
 	case "web":
 		return a.runWeb(ctx, args[1:], stdout, stderr)
 	default:
 		return fmt.Errorf("unknown command %q\n\n%s", args[0], usageText)
 	}
+}
+
+func (a *App) runInstall(args []string, stdout io.Writer) error {
+	fs := flag.NewFlagSet("install", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	destFlag := fs.String("dest", "", "Destination directory for the installed binary.")
+
+	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			fmt.Fprint(stdout, installUsageText)
+			return nil
+		}
+		return err
+	}
+	if len(fs.Args()) > 0 {
+		return errors.New("install does not accept positional arguments")
+	}
+
+	home, err := a.env.GetHomeDirectory()
+	if err != nil {
+		return fmt.Errorf("resolve home directory: %w", err)
+	}
+	executable, err := a.env.GetExecutablePath()
+	if err != nil {
+		return fmt.Errorf("resolve executable path: %w", err)
+	}
+	pathValue, _ := a.env.LookupEnv("PATH")
+	goBin, _ := a.env.LookupEnv("GOBIN")
+	goPath, _ := a.env.LookupEnv("GOPATH")
+	shellPath, _ := a.env.LookupEnv("SHELL")
+
+	result, err := a.env.InstallSelf(installer.Config{
+		ExecutablePath: executable,
+		HomeDirectory:  home,
+		PathValue:      pathValue,
+		ShellPath:      shellPath,
+		GOBIN:          goBin,
+		GOPATH:         goPath,
+		Destination:    *destFlag,
+	})
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprintf(stdout, "installed globalai to %s\n", result.BinaryPath)
+	if result.OnPath {
+		fmt.Fprintln(stdout, "globalai is ready on PATH")
+		fmt.Fprintln(stdout, "run: globalai --help")
+		return nil
+	}
+	if result.ShellConfigPath != "" {
+		if result.ShellConfigUpdated {
+			fmt.Fprintf(stdout, "updated %s to include %s\n", result.ShellConfigPath, result.Directory)
+		} else {
+			fmt.Fprintf(stdout, "%s already includes setup for %s\n", result.ShellConfigPath, result.Directory)
+		}
+		if result.ReloadCommand != "" {
+			fmt.Fprintf(stdout, "run: %s\n", result.ReloadCommand)
+		}
+	}
+	fmt.Fprintf(stdout, "run now: %s --help\n", result.BinaryPath)
+	return nil
 }
 
 func (a *App) runWeb(ctx context.Context, args []string, stdout, stderr io.Writer) error {
@@ -151,10 +229,12 @@ const usageText = `globalai helps inspect AI prompt and instruction sources.
 
 Usage:
   globalai web [path] [--root PATH] [--addr HOST:PORT] [--open|--no-open]
+  globalai install [--dest DIR]
 
 Commands:
-  web   Start a local viewer for curated prompt and config sources.
-  help  Show this help text.
+  web      Start a local viewer for curated prompt and config sources.
+  install  Install the current globalai binary into a user bin directory.
+  help     Show this help text.
 `
 
 const webUsageText = `globalai web starts a local viewer for curated prompt and config sources.
@@ -167,6 +247,15 @@ Flags:
   --addr     Loopback listening address, default 127.0.0.1:0.
   --open     Open the viewer in a browser after startup.
   --no-open  Skip browser opening.
+`
+
+const installUsageText = `globalai install copies the current globalai binary into a user bin directory.
+
+Usage:
+  globalai install [--dest DIR]
+
+Flags:
+  --dest  Destination directory for the installed binary.
 `
 
 type trackedBool struct {
