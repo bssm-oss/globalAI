@@ -9,10 +9,11 @@
 ## 런타임 흐름
 
 1. `cmd/globalai/main.go` 가 시그널을 처리하는 컨텍스트를 생성합니다.
-2. `internal/cli` 가 명령행 인자를 파싱하고 루트 디렉터리와 홈 디렉터리를 결정합니다.
+2. `internal/cli` 가 명령행 인자를 파싱하고 루트 디렉터리, 홈 디렉터리, 설치 흐름을 오케스트레이션합니다.
 3. `internal/source` 가 프로젝트와 전역 위치에서 allowlist 기반 파일을 수집합니다.
 4. `internal/viewer` 가 루프백 HTTP 서버를 시작하고 임베디드 UI와 `/api/sources` 를 노출합니다.
 5. `internal/browser` 가 필요할 경우 기본 브라우저로 로컬 뷰어 URL을 엽니다.
+6. `internal/install` 이 필요할 경우 현재 실행 중인 바이너리를 사용자 bin 디렉터리로 복사하고 셸 PATH 구성을 돕습니다.
 
 ## 왜 이런 구조를 택했는가
 
@@ -48,6 +49,7 @@
 - `internal/source`: 탐색 규칙과 페이로드 생성
 - `internal/viewer`: HTTP 서빙과 세션 수명주기
 - `internal/browser`: OS별 브라우저 실행
+- `internal/install`: 자기 자신을 사용자 bin 디렉터리에 설치하는 부트스트랩 로직
 
 ## 가까운 확장 지점
 
