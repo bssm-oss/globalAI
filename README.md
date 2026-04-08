@@ -65,28 +65,95 @@
 가장 빠른 확인 경로는 아래 순서입니다.
 
 ```bash
-go install github.com/bssm-oss/globalAI/cmd/globalai@latest
+go run github.com/bssm-oss/globalAI/cmd/globalai@latest install
 globalai web --no-open
 ```
 
-정상적으로 시작되면 `globalai viewer ready at http://127.0.0.1:PORT` 형식의 주소가 출력됩니다. 그 주소를 브라우저에 열면 현재 저장소와 홈 디렉터리의 allowlisted 소스를 바로 볼 수 있습니다.
+설치기가 현재 `PATH` 안에서 쓸 수 있는 사용자 디렉터리를 찾으면 `globalai` 명령이 바로 잡히고, 그렇지 않으면 설치 위치와 셸 재적용 방법을 출력합니다. 정상적으로 시작되면 `globalai viewer ready at http://127.0.0.1:PORT` 형식의 주소가 출력됩니다. 그 주소를 브라우저에 열면 현재 저장소와 홈 디렉터리의 allowlisted 소스를 바로 볼 수 있습니다.
+
+### 처음 설정할 때 가장 쉬운 Go 경로
+
+첫 설치에서는 아래 명령을 권장합니다.
+
+```bash
+go run github.com/bssm-oss/globalAI/cmd/globalai@latest install
+```
+
+이 명령은 실행 중인 `globalai` 바이너리를 사용자 bin 디렉터리에 복사하고, 이미 `PATH` 에 잡힌 디렉터리가 있으면 그 위치를 우선 사용합니다. 설치 후 `globalai is ready on PATH` 가 나오면 바로 `globalai web` 을 실행하면 됩니다.
 
 ### Go로 바로 설치
 
-Go가 이미 설치되어 있다면 아래 명령으로 바로 설치할 수 있습니다.
+Go가 이미 설치되어 있고 설치 위치와 `PATH` 를 직접 관리하고 싶다면 아래 명령으로도 설치할 수 있습니다.
 
 ```bash
 go install github.com/bssm-oss/globalAI/cmd/globalai@latest
 ```
 
-설치 후에는 `$(go env GOPATH)/bin` 또는 사용 중인 `GOBIN` 이 `PATH` 에 있어야 `globalai` 명령을 바로 실행할 수 있습니다.
+Go는 바이너리를 `GOBIN` 에 설치하고, `GOBIN` 이 비어 있으면 `$(go env GOPATH)/bin` 에 설치합니다. 즉 설치가 성공해도 그 디렉터리가 현재 셸의 `PATH` 에 없으면 `globalai: command not found` 가 나올 수 있습니다.
+
+가장 먼저 실제 설치 경로를 확인하려면 아래처럼 실행하면 됩니다.
+
+```bash
+BIN_DIR="$(go env GOBIN)"
+[ -n "$BIN_DIR" ] || BIN_DIR="$(go env GOPATH)/bin"
+printf '%s\n' "$BIN_DIR"
+```
 
 설치가 끝났다면 아래 명령으로 먼저 동작을 확인할 수 있습니다.
 
 ```bash
-globalai --help
-globalai web --help
+BIN_DIR="$(go env GOBIN)"
+[ -n "$BIN_DIR" ] || BIN_DIR="$(go env GOPATH)/bin"
+"$BIN_DIR/globalai" --help
+"$BIN_DIR/globalai" web --help
 ```
+
+위 절대 경로 실행이 성공하면 설치 자체는 정상입니다. 그다음 `globalai` 를 바로 쓰고 싶다면 해당 디렉터리를 `PATH` 에 추가하면 됩니다. 첫 설치에서 이 과정을 자동으로 덜 신경 쓰고 싶다면 위의 `go run ... install` 경로를 쓰는 편이 더 쉽습니다.
+
+#### zsh (macOS 기본 셸)
+
+기본 `GOPATH` 를 쓰는 경우 가장 단순한 설정은 아래와 같습니다.
+
+```bash
+echo 'export PATH="$(go env GOPATH)/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+직접 `GOBIN` 을 설정해 쓰고 있다면 그 경로를 대신 넣으면 됩니다.
+
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+#### bash
+
+```bash
+echo 'export PATH="$(go env GOPATH)/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+#### fish
+
+```fish
+set -Ux fish_user_paths (go env GOPATH)/bin $fish_user_paths
+```
+
+셸 설정을 바꾼 뒤에는 새 터미널을 열거나 설정 파일을 다시 읽은 다음 아래처럼 확인합니다.
+
+```bash
+command -v globalai
+globalai --help
+```
+
+### 설치 직후 `globalai` 가 안 보일 때
+
+아래 순서대로 보면 됩니다.
+
+1. `go install github.com/bssm-oss/globalAI/cmd/globalai@latest` 가 에러 없이 끝났는지 확인합니다.
+2. `BIN_DIR="$(go env GOBIN)"; [ -n "$BIN_DIR" ] || BIN_DIR="$(go env GOPATH)/bin"` 로 설치 위치를 확인합니다.
+3. `"$BIN_DIR/globalai" --help` 가 되면 설치는 정상이고, 문제는 `PATH` 설정입니다.
+4. 해당 디렉터리를 셸의 `PATH` 에 추가한 뒤 `globalai --help` 를 다시 실행합니다.
 
 ### GitHub Releases에서 바이너리 다운로드
 
@@ -95,7 +162,7 @@ Go를 따로 설치하지 않고 쓰고 싶다면 GitHub Releases에서 운영�
 일반적인 확인 순서는 아래와 같습니다.
 
 1. 운영체제에 맞는 압축 파일을 내려받아 풉니다.
-2. 압축을 푼 디렉터리에서 `globalai --help` 로 실행 가능 여부를 확인합니다.
+2. 압축을 푼 디렉터리에서 macOS/Linux 는 `./globalai --help`, Windows 는 `./globalai.exe --help` 로 실행 가능 여부를 확인합니다.
 3. 필요하면 바이너리를 `PATH` 에 잡힌 디렉터리로 옮긴 뒤 `globalai web` 을 실행합니다.
 
 이 바이너리 자산은 유지보수자가 `v*` 형식의 버전 태그를 푸시할 때 GitHub Releases에 자동으로 게시됩니다.
@@ -218,6 +285,7 @@ bash scripts/functional_smoke.sh
 - `go test -race ./...`
 - `go build ./cmd/globalai`
 - 기능 스모크 테스트 스크립트
+- 설치 스모크 테스트 스크립트
 
 또한 버전 태그(`v*`)를 푸시하면 macOS, Linux, Windows용 압축 바이너리를 GitHub Release 자산으로 자동 게시합니다.
 
